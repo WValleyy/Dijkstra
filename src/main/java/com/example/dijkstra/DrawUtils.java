@@ -9,7 +9,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +27,7 @@ public class DrawUtils {
         Point2D p = n.getCoord();
 
         return p.distance(x, y) <= radius;
-    }
+    }// check nếu tọa độ chuột nằm trong node hay khong
 
     public static boolean isOverlapping(MouseEvent e, Node n) {
         double x =  e.getX();
@@ -38,7 +37,7 @@ public class DrawUtils {
         double distance = point.distance(x, y);
 
         return distance < 2*radius;
-    }
+    }// check nếu tạo 1 node mới đè lên node cũ
 
     private static int dist2(Point2D v, Point2D w) {
         return (int) (Math.pow((v.getX() - w.getX()), 2) + Math.pow(v.getY() - w.getY(), 2));
@@ -56,7 +55,7 @@ public class DrawUtils {
     }
     private static int distToSegment(Point2D p, Point2D v, Point2D w) {
         return (int) Math.sqrt(distToSegmentSquared(p, v, w));
-    }
+    }// cả cái đống này là tính khoảng cách từ điểm đến đoạn thang
 
     public static boolean isOnEdge(MouseEvent e, Edge edge) {
         double x = e.getX();
@@ -65,9 +64,7 @@ public class DrawUtils {
         int dist = distToSegment( mouse_coor,
                 edge.getNodeFrom().getCoord(),
                 edge.getNodeTo().getCoord() );
-        if (dist<6)
-            return true;
-        return false;
+        return dist < 6;// nếu đưa chuột lại gần hơn 6pixel thì tính là on edge
     }
 
     public static Color parseColor(String colorStr) {
@@ -76,12 +73,11 @@ public class DrawUtils {
         int blue = Integer.valueOf(colorStr.substring(5, 7), 16);
 
         return Color.rgb(red, green, blue);
-    }
+    }// tạo màu cho node
 
 
     public void drawWeightText(String text, int x, int y) {
         gc.setFill(Color.web("#cccccc"));
-        Font font = gc.getFont(); // Use the default font or set a custom one
         Text textNode = new Text(text);
         textNode.setFont(gc.getFont()); // Set the same font as the GraphicsContext
 
@@ -89,7 +85,7 @@ public class DrawUtils {
         double ascent = textNode.getBaselineOffset();
 
         gc.fillText(text, x - t_width / 2, y + ascent / 2);
-    }
+    }// vẽ text nằm giữa đoạn thẳng
 
     public void drawWeight(Edge edge) {
         Point2D from = edge.getNodeFrom().getCoord();
@@ -100,7 +96,7 @@ public class DrawUtils {
         int rad = radius/2;
         gc.fillOval(x-rad, y-rad, 2*rad, 2*rad);
         drawWeightText(String.valueOf(edge.getWeight()), x, y);
-    }
+    }// vẽ text nằm giữa đoạn thẳng
 
     public void drawPath(List<Node> path) {
         List<Edge> edges = new ArrayList<>();
@@ -126,7 +122,7 @@ public class DrawUtils {
     }
     public void drawPath(Edge edge) {
         gc.setFill(parseColor("#00BCD4"));
-        drawBoldEdge(edge);
+        drawBoldEdge(edge);// vẽ lại cạnh đang duyệt
     }
     public void drawEdge(Edge edge) {
         gc.setFill(parseColor("#555555"));
@@ -181,6 +177,6 @@ public class DrawUtils {
         double ascent = textNode.getBaselineOffset();
 
         gc.fillText(text, x - t_width / 2, y + ascent / 2);
-    }
+    }// vẽ text nằm giữa
 
 }

@@ -2,18 +2,16 @@ package com.example.dijkstra;
 
 import javafx.geometry.Point2D;
 
-import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
+
 import java.util.List;
 
 public class Node {
 
-    private int id;
-    private Point2D coord = new Point2D(0,0);
+    private int id; // id của node
+    private Point2D coord = new Point2D(0,0); // tọa độ của node, biểu diễn bằng class Point2D
 
-    private List<Node> shortestPath = new ArrayList<>();
+    private List<Node> shortestPath = new ArrayList<>(); // đường đi ngắn nhất tu source node đến node này
     public Node(){};
     public Node(Point2D p){
         this.coord = p;

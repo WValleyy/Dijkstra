@@ -55,13 +55,13 @@ public class Controller extends Canvas {
     }
 
     private void handleMouseMove(MouseEvent e) {
-        hoveredEdge = null;
+        hoveredEdge = null; // moi lan an chuot xuong reset lai
         for (Edge edge : graph.getEdges()) {
             if(DrawUtils.isOnEdge(e, edge)) {
                 hoveredEdge = edge;
                 break;
             }
-        }
+        }// nếu chuoot gan canh thi set canh day la hovered, khong thi thoi
     }
 
 
@@ -74,17 +74,18 @@ public class Controller extends Canvas {
             pressX = 0;
             pressY = 0;
             return;
-        }
+        }// nếu khi thả chuột ra, tọa độ không đổi thì tính là click, làm ntn bởi nếu click xong drag rồi thả thì nếu setOnMouseClick nó vẫn tính và tạo node mới
         for (Node node : graph.getNodes()) {
             if(selectedNode !=null && node!= selectedNode && DrawUtils.isWithinBounds(e, node)){
                 Edge new_edge = new Edge(selectedNode, node);
                 graph.addEdge(new_edge);
-                graph.setSolved(false);
-            }
-        }
-        selectedNode = null;
 
-        redrawGraph();
+            }// nếu không thì xét xem trong các node có node nằm trong tọa độ chuot tại thời điểm thả không, nếu có thì tạo cạnh
+            // xử lí cho sự kiện press xong drag chuột để tạo cạnh
+        }
+        selectedNode = null;// giải phóng node đang chọn
+
+        redrawGraph();// vẽ lại
     }
 
 
@@ -97,14 +98,14 @@ public class Controller extends Canvas {
         if (clickedNode != null) {
             selectedNode = clickedNode;
 
-        }
+        }// mỗi khi ấn xuống, neu có toa do chuot nằm trong node nào đó thì sẽ set node thành selected
 
 
     }
-    private void handleClick(MouseEvent e) {
+    private void handleClick(MouseEvent e) {// xử lí sự kiện click chuột
 
         Node clickedNode = getNodeAtPosition(e);
-        if (clickedNode != null) {
+        if (clickedNode != null) {// nếu đang click vào node thì xử lí xóa hoặc chọn source node
 
             if (e.isControlDown() && deleteNode) {
 
@@ -121,7 +122,7 @@ public class Controller extends Canvas {
             }
             return;
         }
-        if(hoveredEdge != null) {
+        if(hoveredEdge != null) {// nếu đang chọn cạnh thì set weight
             TextInputDialog dialog = new TextInputDialog();
             dialog.setTitle("Enter Weight");
             dialog.setHeaderText(null);
@@ -153,9 +154,9 @@ public class Controller extends Canvas {
 
                 alert.showAndWait();
                 return;
-            }
+            }// check xem có chồng lấn khi tạo node không
         }
-        if (!deleteNode && hoveredEdge == null) {
+        if (!deleteNode && hoveredEdge == null) {// nếu ấn chuot phai va khong co canh nao duoc chọn thì tạo node
             Point2D p = new Point2D(e.getX(), e.getY());
             Node newNode = new Node(p);
             graph.addNode(newNode);
@@ -180,8 +181,8 @@ public class Controller extends Canvas {
                 }
 
             }
-
-            redrawGraph();
+// xử lí khi drag node
+            redrawGraph();// liên tục vẽ lại node và cạnh khi thay đổi tọa độ node
             }
 
 
@@ -195,7 +196,7 @@ public class Controller extends Canvas {
             }
         }
         return null;
-    }
+    }// tìm xem có node nào tại tọa độ chuột không
 
     private void redrawGraph() {
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());

@@ -14,5 +14,5 @@ module com.example.dijkstra {
 
     opens com.example.dijkstra to javafx.fxml;
     exports com.example.dijkstra;
-    //opens com.example.dijkstra.k to javafx.fxml;
+
 }

@@ -14,15 +14,6 @@ public class Graph {
     private Node source;
     private Node destination;
 
-    private boolean solved = false;
-
-    public void setSolved(boolean solved) {
-        this.solved = solved;
-    }
-
-    public boolean isSolved() {
-        return solved;
-    }
 
     public void setNodes(List<Node> nodes){
         this.nodes = nodes;
@@ -47,7 +38,7 @@ public class Graph {
 
         return false;
     }
-
+// set source node
     public void setSource(Node node){
         if(nodes.contains(node))
             source = node;
@@ -59,22 +50,11 @@ public class Graph {
         return source;
     }
 
-    public Node getDestination(){
-        return destination;
-    }
-
     public boolean isSource(Node node){
         return node == source;
     }
 
-    public boolean isDestination(Node node){
-        return node == destination;
-    }
 
-    public void addNode(Point2D coord){
-        Node node = new Node(coord);
-        addNode(node);
-    }
 
     public void addNode(Node node){
         node.setId(count);
@@ -118,10 +98,8 @@ public class Graph {
         count = 1;
         nodes.clear();
         edges.clear();
-        solved = false;
-
         source = null;
-        destination = null;
+
     }
 
 }

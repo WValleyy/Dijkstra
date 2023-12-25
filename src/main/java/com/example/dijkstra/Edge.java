@@ -6,10 +6,10 @@ public class Edge {
     private Node to;
     private int weight = 1;
 
-    public Edge(Node one, Node two){
-        this.from = one;
-        this.to = two;
-    }
+    public Edge(Node from, Node to){
+        this.from = from;
+        this.to = to;
+    }// 2 đầu của cạnh
 
     public Node getNodeFrom(){
         return from;
