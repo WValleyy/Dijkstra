@@ -1,218 +1,227 @@
 package com.example.dijkstra;
 
-import javafx.beans.binding.Bindings;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Point2D;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.Alert;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Line;
+import javafx.scene.layout.AnchorPane;
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.swing.*;
+import java.util.Optional;
 
-public class Controller  {
 
-    @FXML
-    private ComboBox<String> fromVertex;
+public class Controller extends Canvas {
 
     @FXML
-    private Pane graph;
+    private AnchorPane drawPane;
+
+    private Graph graph;
+    private Canvas canvas;
+    private GraphicsContext gc;
+    private DrawUtils drawUtils;
+    private Node selectedNode;
+
+    double pressX;
+    double pressY;
+    private Edge hoveredEdge;
+    private boolean deleteNode = false;
 
     @FXML
-    private TextField nbVertices;
-
-    @FXML
-    private ComboBox<String> toVertex;
-
-    @FXML
-    private ComboBox<String> startVertex;
-
-    @FXML
-    private TextField weight;
-
-    List<Node> node_lists = new ArrayList<>();
-    ObservableList<String> vertexItems = FXCollections.observableArrayList();
-
     public void initialize() {
-        toVertex.setItems(vertexItems);
-        fromVertex.setItems(vertexItems);
-        startVertex.setItems(vertexItems);
-    }
 
-    @FXML
-    public void generatePress() {
-        // Xóa tất cả các nút hiện tại trong Pane
-        graph.getChildren().clear();
-        vertexItems.clear();
-        // Lấy số lượng vertices từ TextField
-        int numberOfVertices = 0;
-        try {
-            numberOfVertices = Integer.parseInt(nbVertices.getText());
+        canvas = new Canvas(1000,600);// Kích thước canvas
+        gc = canvas.getGraphicsContext2D();
+        drawUtils = new DrawUtils(gc);
+        graph = new Graph();
+        drawPane.getChildren().add(canvas);
 
-            // Tính toán các thông số cần thiết và tạo hình tròn
-            // ...
-
-        } catch (NumberFormatException e) {
-            // Xử lý trường hợp khi không thể chuyển đổi thành số nguyên
-            System.out.println("Invalid number format. Please enter a valid number of vertices.");
+        canvas.setOnMousePressed(this::handleMoveNode);
+        canvas.setOnMouseDragged( event -> {
+                if (event.isPrimaryButtonDown()) {
+            handleDrag(event);
         }
+    });
+        canvas.setOnMouseReleased(this::handleMouseReleased);
 
-        // Tính toán các thông số cần thiết
-        double centerX = graph.getWidth() / 2.0;
-        double centerY = graph.getHeight() / 2.0;
-        double radius = 20.0; // Bán kính của hình tròn
-
-        // Tạo và thêm các hình tròn vào Pane
-        for (int i = 0; i < numberOfVertices; i++) {
-
-            double x = centerX - 50 + 50*i;
-            double y = centerY - 50 + 100*(i%2);
-
-            Node node = createNode(i);
-            node.setCenterX(x);
-            node.setCenterY(y);
-            Label label = createLabel(i);
-
-            label.setLayoutX(x-5); // Adjust label position based on node position
-            label.setLayoutY(y-13); // Adjust label position based on node position
-
-
-
-            graph.getChildren().addAll(node, label);
-
-            // Thêm sự kiện để cập nhật DoubleProperty khi vị trí của Node thay đổi
-
-            node_lists.add(node);
-            vertexItems.add(node.getName());
-
-            node.setOnMousePressed(this::handleMousePressed);
-            node.setOnMouseDragged(event -> handleMouseDragged(event, label));
-
-        }
+        canvas.setOnMouseMoved(this::handleMouseMove);
 
 
     }
 
-    private Node createNode(int i) {
-
-        // Handle mouse events for node movement
-        return new Node(20, Color.BLACK, String.valueOf(i));
-    }
-
-    private Label createLabel(int i) {
-        Label label = new Label(String.valueOf(i));
-        label.setStyle("-fx-background-color: none; -fx-border-color: none;");
-        label.setStyle("-fx-text-fill: WHITE ; -fx-font-size: 16px;");
-        label.setMinWidth(10); // Adjust width as needed
-        label.setAlignment(javafx.geometry.Pos.CENTER);
-
-
-        return label;
-    }
-
-    private double xOffset = 0;
-    private double yOffset = 0;
-
-    private void handleMousePressed(MouseEvent event) {
-        xOffset = event.getSceneX() - ((Node) event.getSource()).getCenterX();
-        yOffset = event.getSceneY() - ((Node) event.getSource()).getCenterY();
-    }
-
-    private void handleMouseDragged(MouseEvent event, Label label) {
-        Node g = (Node) event.getSource();
-        double x = event.getSceneX() - xOffset;
-        double y = event.getSceneY() - yOffset;
-        g.setCenterX(x);
-        g.setCenterY(y);
-        label.setLayoutX(x-5);
-        label.setLayoutY(y-13);
-
-
-    }
-
-    @FXML
-    void addEdgePressed(ActionEvent event) {
-        String fromVertexValue = fromVertex.getValue();
-        String toVertexValue = toVertex.getValue();
-        int weightValue = Integer.parseInt(weight.getText());
-
-        if (fromVertexValue != null && toVertexValue != null && !fromVertexValue.equals(toVertexValue)) {
-
-            createEdge(fromVertexValue, toVertexValue, weightValue);
-
+    private void handleMouseMove(MouseEvent e) {
+        hoveredEdge = null;
+        for (Edge edge : graph.getEdges()) {
+            if(DrawUtils.isOnEdge(e, edge)) {
+                hoveredEdge = edge;
+                break;
+            }
         }
     }
-    private void createEdge(String fromVertex,String toVertex, int weightValue) {
-        // Assuming you have a list of nodes representing vertices
-        Node fromNode = node_lists.stream()
-                .filter(node -> node.getName().equals(fromVertex))
-                .findFirst()
-                .orElse(null);
-        Node toNode = node_lists.stream()
-                .filter(node -> node.getName().equals(toVertex))
-                .findFirst()
-                .orElse(null);
-        fromNode.addAdjacentNode(toNode, weightValue);
-        // Create a line between the centers of the two nodes
-        double fromX = fromNode.getCenterX();
-        double fromY = fromNode.getCenterY();
-        double toX = toNode.getCenterX();
-        double toY = toNode.getCenterY();
 
-        double angle = Math.atan2(toY - fromY, toX - fromX);
 
-        double fromNodeRadius = fromNode.getRadius(); // Assuming the nodes are circles
-        double toNodeRadius = toNode.getRadius();
+    private void handleMouseReleased(MouseEvent e) {
 
-        double fromNodeBoundaryX = fromX + fromNodeRadius * Math.cos(angle);
-        double fromNodeBoundaryY = fromY + fromNodeRadius * Math.sin(angle);
 
-        double toNodeBoundaryX = toX - toNodeRadius * Math.cos(angle);
-        double toNodeBoundaryY = toY - toNodeRadius * Math.sin(angle);
+        if (pressX == e.getX() && pressY == e.getY()) {
 
-        Line edge = new Line(fromNodeBoundaryX, fromNodeBoundaryY, toNodeBoundaryX, toNodeBoundaryY);
+            handleClick(e);
+            pressX = 0;
+            pressY = 0;
+            return;
+        }
+        for (Node node : graph.getNodes()) {
+            if(selectedNode !=null && node!= selectedNode && DrawUtils.isWithinBounds(e, node)){
+                Edge new_edge = new Edge(selectedNode, node);
+                graph.addEdge(new_edge);
+                graph.setSolved(false);
+            }
+        }
+        selectedNode = null;
 
-        // Add the line to the graph
-        graph.getChildren().add(edge);
+        redrawGraph();
     }
 
 
-    @FXML
-    void cretateGraphPressed(ActionEvent event) {
 
-
-    }
-
-    @FXML
-    void findPressed(ActionEvent event) {
-        String startVertexValue = startVertex.getValue();
-
-        if (startVertexValue != null) {
-
-            Node startNode = node_lists.stream()
-                    .filter(node -> node.getName().equals(startVertexValue))
-                    .findFirst()
-                    .orElse(null);
-            Dijkstra dijkstra = new Dijkstra();
-            dijkstra.calculateShortestPath(startNode);
-            dijkstra.printPaths(node_lists);
+    private void handleMoveNode(MouseEvent e) {
+        pressX = e.getX();
+        pressY = e.getY();
+        deleteNode = e.isSecondaryButtonDown();
+        Node clickedNode = getNodeAtPosition(e);
+        if (clickedNode != null) {
+            selectedNode = clickedNode;
 
         }
 
+
+    }
+    private void handleClick(MouseEvent e) {
+
+        Node clickedNode = getNodeAtPosition(e);
+        if (clickedNode != null) {
+
+            if (e.isControlDown() && deleteNode) {
+
+                graph.deleteNode(clickedNode);
+                deleteNode = false;
+                redrawGraph();
+
+            }else if (e.isControlDown() && e.isShiftDown()) {
+
+                graph.setSource(clickedNode);
+
+                redrawGraph();
+
+            }
+            return;
+        }
+        if(hoveredEdge != null) {
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle("Enter Weight");
+            dialog.setHeaderText(null);
+            dialog.setContentText("Enter weight for " + hoveredEdge.toString() + " : ");
+
+            Optional<String> result = dialog.showAndWait();
+            if (result.isPresent()) {
+                String weightInput = result.get();
+            try {
+                int weight = Integer.parseInt(weightInput);
+                if (weight > 0) {
+                    hoveredEdge.setWeight(weight);
+                    hoveredEdge = null;
+                    redrawGraph();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Weight should be positive");
+                }
+            } catch (NumberFormatException ignored) {}
+            return;
+        }}
+
+
+        for(Node node : graph.getNodes()) {
+            if (DrawUtils.isOverlapping(e, node)) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Chồng lấn");
+                alert.setHeaderText(null);
+                alert.setContentText("Hai phần tử đang chồng lấn. Vui lòng di chuyển chúng ra khỏi nhau.");
+
+                alert.showAndWait();
+                return;
+            }
+        }
+        if (!deleteNode && hoveredEdge == null) {
+            Point2D p = new Point2D(e.getX(), e.getY());
+            Node newNode = new Node(p);
+            graph.addNode(newNode);
+            redrawGraph();
+
+        }
+    }
+
+    private void handleDrag(MouseEvent e) {
+
+
+        if (selectedNode != null ) {
+            if(e.isControlDown()){
+                double x = e.getX();
+                double y = e.getY();
+                double radius = 20; // Assuming radius is 20
+
+                // Ensure the node stays within the canvas bounds
+                if (x - radius >= 0 && x + radius <= canvas.getWidth() && y - radius >= 0 && y + radius <= canvas.getHeight()) {
+
+                    selectedNode.setPoint(x, y);
+                }
+
+            }
+
+            redrawGraph();
+            }
+
+
+
+    }
+
+    private Node getNodeAtPosition(MouseEvent e) {
+        for (Node node : graph.getNodes()) {
+            if (DrawUtils.isWithinBounds(e, node)) {
+                return node;
+            }
+        }
+        return null;
+    }
+
+    private void redrawGraph() {
+        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        for (Edge edge : graph.getEdges()) {
+            drawUtils.drawEdge(edge);
+        }
+        for (Node node : graph.getNodes()) {
+            if (graph.isSource(node)) {
+                drawUtils.drawSourceNode(node);
+            }else {
+                drawUtils.drawNode(node);
+            }
+        }
     }
 
 
+    @FXML
+    void runPressed(ActionEvent event) {
+        if (graph.getSource() != null) {
+            Dijkstra d =new Dijkstra(graph);
+            d.calculateShortestPath();
+            d.printPaths(graph.getNodes());
+            d.printTravelsal();
+        }
 
-
+    }
 
 
 }

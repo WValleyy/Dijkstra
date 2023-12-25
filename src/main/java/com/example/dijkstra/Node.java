@@ -1,77 +1,50 @@
 package com.example.dijkstra;
 
-import javafx.scene.paint.Paint;
-import javafx.scene.shape.Circle;
+import javafx.geometry.Point2D;
 
+import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Node extends Circle implements Comparable<Node> {
+public class Node {
 
-    private static List<String> nodes = new LinkedList<>();
-    private String name;
-    private int distance = Integer.MAX_VALUE;
+    private int id;
+    private Point2D coord = new Point2D(0,0);
 
-    private HashMap<Node, Integer> adjacentNodes = new HashMap<Node, Integer>();
-    private List<Node> shortestPath = new LinkedList<Node>();
-
-    public void addAdjacentNode(Node node, int weight ) {
-        if (nodes.contains(node.getName())) {
-            if (!adjacentNodes.containsKey(node)) {
-                if (weight >= 0) {
-                    adjacentNodes.put(node, weight);
-                } else {
-                    System.out.println("weight < 0!");
-                }
-
-            } else {
-                System.out.println("da them canh nay roi!");
-            }
-
-        }else {
-            System.out.println("Node lien ke khong ton tai!");
-        }
+    private List<Node> shortestPath = new ArrayList<>();
+    public Node(){};
+    public Node(Point2D p){
+        this.coord = p;
+    }
+    public void setPoint(double x, double y) {
+        coord = new Point2D(x, y);
+    }
+    public int getX(){
+        return (int) coord.getX();
     }
 
-    public Node(String name) {
-        super();
-        this.name = name;
-        nodes.add(name);
+    public int getY(){
+        return (int) coord.getY();
     }
 
-    public Node(double v, Paint paint, String name ) {
-        super(v, paint);
-        this.name = name;
-        nodes.add(name);
+    public Point2D getCoord(){
+        return coord;
     }
-    public int getDistance() {
-        return distance;
-    }
-
-    public void setDistance(int distance) {
-        this.distance = distance;
-    }
-
-    public HashMap<Node, Integer> getAdjacentNodes() {
-        return adjacentNodes;
+    public List<Node> getShortestPath() {
+        return shortestPath;
     }
 
     public void setShortestPath(List<Node> shortestPath) {
         this.shortestPath = shortestPath;
     }
 
-    public List<Node> getShortestPath() {
-        return shortestPath;
+    public int getId() {
+        return id;
     }
-    public String getName() {
-        return name;
-    }
-
-
-    @Override
-    public int compareTo(Node node) {
-        return Integer.compare(this.distance, node.getDistance());
+    public void setId(int id) {
+        this.id = id;
     }
 
 
