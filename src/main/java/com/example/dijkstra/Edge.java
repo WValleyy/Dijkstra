@@ -5,6 +5,7 @@ public class Edge {
     private Node from;
     private Node to;
     private int weight = 1;
+    private boolean highlighted;
 
     public Edge(Node one, Node two){
         this.from = one;
@@ -40,5 +41,11 @@ public class Edge {
         return "Edge ~ "
                 + getNodeFrom().getId() + " - "
                 + getNodeTo().getId();
+    }
+    public void setHighlighted(boolean highlighted){
+        this.highlighted=highlighted;
+    }
+    public boolean getHighlighted(){
+        return highlighted;
     }
 }

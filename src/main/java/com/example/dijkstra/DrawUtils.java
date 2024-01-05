@@ -79,16 +79,16 @@ public class DrawUtils {
     }
 
 
-    public void drawWeightText(String text, int x, int y) {
-        gc.setFill(Color.web("#cccccc"));
-        Font font = gc.getFont(); // Use the default font or set a custom one
+    public void drawWeightText(String text, int x, int y) { //vẽ văn bản cho trọng số tại vị trí (x,y)
+        gc.setFill(Color.web("#cccccc")); //background màu xám nhạt
+        Font font = gc.getFont(); // default hoặc custom
         Text textNode = new Text(text);
-        textNode.setFont(gc.getFont()); // Set the same font as the GraphicsContext
+        textNode.setFont(gc.getFont()); // same font
 
-        double t_width = textNode.getBoundsInLocal().getWidth();
+        double t_width = textNode.getBoundsInLocal().getWidth(); // trả về chiều rộng văn bản
         double ascent = textNode.getBaselineOffset();
 
-        gc.fillText(text, x - t_width / 2, y + ascent / 2);
+        gc.fillText(text, x - t_width / 2, y + ascent / 2); // viết tại vị trí trung tâm
     }
 
     public void drawWeight(Edge edge) {
@@ -100,46 +100,33 @@ public class DrawUtils {
         int rad = radius/2;
         gc.fillOval(x-rad, y-rad, 2*rad, 2*rad);
         drawWeightText(String.valueOf(edge.getWeight()), x, y);
+        // Vẽ hình tròn sau đó vẽ trọng số tại trung điểm của cạnh
     }
 
-    public void drawPath(List<Node> path) {
-        List<Edge> edges = new ArrayList<>();
-        for(int i = 0; i < path.size()-1; i++) {
-            edges.add(new Edge(path.get(i), path.get(i+1)));
-        }
 
-        for(Edge edge : edges) {
-            drawPath(edge);
-        }
-    }
 
-    private void drawBoldEdge(Edge edge){
-        Point2D from = edge.getNodeFrom().getCoord();
-        Point2D to = edge.getNodeTo().getCoord();
-        gc.setLineWidth(8);
-        gc.strokeLine(from.getX(), from.getY(), to.getX(), to.getY());
-        int x = (int) ((from.getX() + to.getX())/2);
-        int y = (int) ((from.getY() + to.getY())/2);
 
-        int rad = 13;
-        gc.fillOval(x-rad, y-rad, 2*rad, 2*rad);
-    }
-    public void drawPath(Edge edge) {
-        gc.setFill(parseColor("#00BCD4"));
-        drawBoldEdge(edge);
-    }
+
     public void drawEdge(Edge edge) {
         gc.setFill(parseColor("#555555"));
         drawBaseEdge(edge);
         drawWeight(edge);
     }
 
-    private void drawBaseEdge(Edge edge){
+    private void drawBaseEdge(Edge edge) {
         Point2D from = edge.getNodeFrom().getCoord();
         Point2D to = edge.getNodeTo().getCoord();
+
+        if (edge.getHighlighted()) {
+            gc.setStroke(parseColor("#FFFF00")); // Highlighted color
+        } else {
+            gc.setStroke(parseColor("#555555")); // Default color
+        }
+
         gc.setLineWidth(3);
         gc.strokeLine(from.getX(), from.getY(), to.getX(), to.getY());
     }
+
 
 
     public void drawSourceNode(Node node){
@@ -155,20 +142,40 @@ public class DrawUtils {
         drawCentreText(String.valueOf(node.getId()), node.getX(), node.getY());
     }
 
-
-
-    public void drawNode(Node node){
-        gc.setFill(parseColor("#9C27B0"));
+    public void drawTargetNode(Node node) {
+        gc.setFill(parseColor("#FF5722")); // Màu sắc cho target node
         gc.fillOval(node.getX() - radius, node.getY() - radius, 2 * radius, 2 * radius);
 
-        radius-=5;
+        radius -= 5;
+        gc.setFill(parseColor("#FFCCBC")); // Màu sắc cho phần fill bên trong target node
+        gc.fillOval(node.getX() - radius, node.getY() - radius, 2 * radius, 2 * radius);
+
+        radius += 5;
+        gc.setFill(parseColor("#FF5722"));
+        drawCentreText(String.valueOf(node.getId()), node.getX(), node.getY());
+    }
+
+
+
+
+    public void drawNode(Node node) {
+        if (node.getHighlighted()) {
+            gc.setFill(parseColor("#FFFF00")); // Highlighted color, you can change it as desired
+        } else {
+            gc.setFill(parseColor("#9C27B0")); // Default color
+        }
+
+        gc.fillOval(node.getX() - radius, node.getY() - radius, 2 * radius, 2 * radius);
+
+        radius -= 5;
         gc.setFill(parseColor("#E1BEE7"));
         gc.fillOval(node.getX() - radius, node.getY() - radius, 2 * radius, 2 * radius);
 
-        radius+=5;
+        radius += 5;
         gc.setFill(parseColor("#9C27B0"));
         drawCentreText(String.valueOf(node.getId()), node.getX(), node.getY());
     }
+
 
 
     public void drawCentreText(String text, int x, int y) {
@@ -181,6 +188,8 @@ public class DrawUtils {
         double ascent = textNode.getBaselineOffset();
 
         gc.fillText(text, x - t_width / 2, y + ascent / 2);
+        //đảm bảo căn giữa theo chiều ngang hay dọc
+
     }
 
 }

@@ -80,13 +80,12 @@ public class Graph {
         node.setId(count);
         nodes.add(node);
         count++;
-        if(node.getId()==1)
-            source = node;
+
     }
 
-    public void addEdge(Edge new_edge){
-        for(Edge edge : edges){
-            if(edge.equals(new_edge)){
+    public void addEdge(Edge new_edge) {
+        for (Edge edge : edges) {
+            if (edge.equals(new_edge) || (edge.getNodeFrom() == new_edge.getNodeTo() && edge.getNodeTo() == new_edge.getNodeFrom())) {
                 return;
             }
         }
@@ -122,6 +121,10 @@ public class Graph {
 
         source = null;
         destination = null;
+    }
+
+    public void setDestination(Node targetNode) {
+        destination=targetNode;
     }
 
 }

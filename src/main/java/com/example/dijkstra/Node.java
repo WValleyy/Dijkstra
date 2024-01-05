@@ -11,6 +11,7 @@ import java.util.List;
 public class Node {
 
     private int id;
+    private boolean highlighted;
     private Point2D coord = new Point2D(0,0);
 
     private List<Node> shortestPath = new ArrayList<>();
@@ -47,6 +48,11 @@ public class Node {
         this.id = id;
     }
 
-
+    public void setHighlighted(boolean highlighted){
+        this.highlighted=highlighted;
+    }
+    public boolean getHighlighted(){
+        return highlighted;
+    }
 
 }
