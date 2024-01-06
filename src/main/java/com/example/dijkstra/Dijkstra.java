@@ -43,38 +43,43 @@ public class Dijkstra {
             int currentDistance = currentPair.getKey();
             selectNode.add(currentNode);
 
-            for (Pair<Node, Integer> pair : getAdjacentNodes(currentNode)) {
-                Node adjacentNode = pair.getKey();
-                int edgeWeight = pair.getValue();
+            for (Pair<Integer,Node> pair : getAdjacentNodes(currentNode)) {
+                Node adjacentNode = pair.getValue();
+                int edgeWeight = pair.getKey();
 
                 if (!visited.contains(adjacentNode)) {
+
                     // Relaxation step
-                    if (distances[adjacentNode.getId() - 1] > currentDistance + edgeWeight) {
+                    if (distances[adjacentNode.getId() - 1] > currentDistance + edgeWeight){
                         distances[adjacentNode.getId() - 1] = currentDistance + edgeWeight;
                         shortestPaths.put(adjacentNode, new ArrayList<>(shortestPaths.get(currentNode)));
                         //Creates a new ArrayList for the adjacentNode and initializes it with the same elements as the shortest path to the currentNode
                         shortestPaths.get(adjacentNode).add(currentNode);
                         adjacentNode.setHighlighted(true);
+                        unvisited.removeIf(p -> p.getValue().equals(adjacentNode));
                         unvisited.add(new Pair<>(distances[adjacentNode.getId() - 1], adjacentNode));
                         traversalPath.add(adjacentNode);
                     }
+
                 }
             }
 
             visited.add(currentNode);
+
         }
+
         clearHighlights();
     }
 
-    public List<Pair<Node, Integer>> getAdjacentNodes(Node node) {
-        List<Pair<Node, Integer>> neighbors = new ArrayList<>();
+    public PriorityQueue<Pair<Integer, Node>> getAdjacentNodes(Node node) {
+        PriorityQueue<Pair<Integer, Node>>neighbors = new PriorityQueue<>(Comparator.comparingInt(Pair::getKey));
 
         for (Edge edge : graph.getEdges()) {
             if (edge.getNodeFrom() == node) {
-                neighbors.add(new Pair<>(edge.getNodeTo(), edge.getWeight()));
+                neighbors.add(new Pair<>( edge.getWeight(),edge.getNodeTo()));
             }
             if (edge.getNodeTo() == node) {
-                neighbors.add(new Pair<>(edge.getNodeFrom(), edge.getWeight()));
+                neighbors.add(new Pair<>(edge.getWeight(),edge.getNodeFrom()));
             }
         }
         return neighbors;
@@ -95,7 +100,7 @@ public class Dijkstra {
             }
 
             // Highlight the last edge (if there is one)
-            if (pathSize > 1) {
+            if (pathSize >= 1) {
                 Node lastNode = shortestPath.get(pathSize - 1);
                 highlightNodeAndEdge(lastNode, destinationNode);
             }

@@ -118,7 +118,9 @@ public class DrawUtils {
         Point2D to = edge.getNodeTo().getCoord();
 
         if (edge.getHighlighted()) {
-            gc.setStroke(parseColor("#FFFF00")); // Highlighted color
+            gc.setStroke(parseColor("#FFD700"));
+
+            // Highlighted color
         } else {
             gc.setStroke(parseColor("#555555")); // Default color
         }
