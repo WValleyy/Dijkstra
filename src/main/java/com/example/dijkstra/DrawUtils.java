@@ -1,5 +1,9 @@
 package com.example.dijkstra;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.PauseTransition;
+import javafx.animation.Timeline;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseEvent;
@@ -8,15 +12,17 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class DrawUtils {
     private GraphicsContext gc;
     private static int radius = 20;
-
+    private Timeline timeline = new Timeline();
     public DrawUtils(GraphicsContext graphicsContext) {
         this.gc = graphicsContext;
     }
@@ -103,14 +109,22 @@ public class DrawUtils {
         // Vẽ hình tròn sau đó vẽ trọng số tại trung điểm của cạnh
     }
 
-
-
-
-
     public void drawEdge(Edge edge) {
         gc.setFill(parseColor("#555555"));
         drawBaseEdge(edge);
         drawWeight(edge);
+        //set a delay here for 2 seconds
+    }
+    public void drawWithDelay(Node node) {
+        PauseTransition pause = new PauseTransition(Duration.millis(2000));
+        pause.setOnFinished(event -> drawNode(node));
+        pause.play();
+    }
+
+    public void drawWithDelay(Edge edge) {
+        PauseTransition pause = new PauseTransition(Duration.millis(2000));
+        pause.setOnFinished(event -> drawEdge(edge));
+        pause.play();
     }
 
     private void drawBaseEdge(Edge edge) {
@@ -178,8 +192,6 @@ public class DrawUtils {
         drawCentreText(String.valueOf(node.getId()), node.getX(), node.getY());
     }
 
-
-
     public void drawCentreText(String text, int x, int y) {
 
         Font font = gc.getFont(); // Use the default font or set a custom one
@@ -191,7 +203,5 @@ public class DrawUtils {
 
         gc.fillText(text, x - t_width / 2, y + ascent / 2);
         //đảm bảo căn giữa theo chiều ngang hay dọc
-
     }
-
 }

@@ -122,6 +122,17 @@ public class Graph {
         source = null;
         destination = null;
     }
+    public Edge findEdge(Node node1, Node node2){
+        for (Edge edge : edges){
+            if (edge.getNodeFrom() == node1 && edge.getNodeTo() == node2){
+                return edge;
+            }
+            if (edge.getNodeFrom() == node2 && edge.getNodeTo() == node1){
+                return edge;
+            }
+        }
+        return null;
+    }
 
     public void setDestination(Node targetNode) {
         destination=targetNode;

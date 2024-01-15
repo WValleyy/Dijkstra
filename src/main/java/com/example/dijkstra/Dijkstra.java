@@ -1,5 +1,7 @@
 package com.example.dijkstra;
 
+import javafx.animation.PauseTransition;
+import javafx.animation.Timeline;
 import javafx.util.Pair;
 
 import java.util.*;
@@ -13,7 +15,14 @@ public class Dijkstra {
     private List<Node> traversalPath = new ArrayList<>();
     private Controller controller;
 
-    public Dijkstra(Graph graph,Controller controller) {
+
+    public List<Node> getTraversalPath() {
+        return traversalPath;
+    }
+    public Map<Node, List<Node>> getShortestPaths() {
+        return shortestPaths;
+    }
+    public Dijkstra(Graph graph, Controller controller) {
         this.graph = graph;
         int numNodes = graph.getNodes().size();
         distances = new int[numNodes];
@@ -21,7 +30,7 @@ public class Dijkstra {
         for (int i = 0; i < numNodes; i++) {
             distances[i] = Integer.MAX_VALUE;
         }
-        this.controller=controller;
+        this.controller = controller;
     }
 
     public void calculateShortestPath() {
@@ -43,14 +52,14 @@ public class Dijkstra {
             int currentDistance = currentPair.getKey();
             selectNode.add(currentNode);
 
-            for (Pair<Integer,Node> pair : getAdjacentNodes(currentNode)) {
+            for (Pair<Integer, Node> pair : getAdjacentNodes(currentNode)) {
                 Node adjacentNode = pair.getValue();
                 int edgeWeight = pair.getKey();
 
                 if (!visited.contains(adjacentNode)) {
 
                     // Relaxation step
-                    if (distances[adjacentNode.getId() - 1] > currentDistance + edgeWeight){
+                    if (distances[adjacentNode.getId() - 1] > currentDistance + edgeWeight) {
                         distances[adjacentNode.getId() - 1] = currentDistance + edgeWeight;
                         shortestPaths.put(adjacentNode, new ArrayList<>(shortestPaths.get(currentNode)));
                         //Creates a new ArrayList for the adjacentNode and initializes it with the same elements as the shortest path to the currentNode
@@ -72,21 +81,23 @@ public class Dijkstra {
     }
 
     public PriorityQueue<Pair<Integer, Node>> getAdjacentNodes(Node node) {
-        PriorityQueue<Pair<Integer, Node>>neighbors = new PriorityQueue<>(Comparator.comparingInt(Pair::getKey));
+        PriorityQueue<Pair<Integer, Node>> neighbors = new PriorityQueue<>(Comparator.comparingInt(Pair::getKey));
 
         for (Edge edge : graph.getEdges()) {
             if (edge.getNodeFrom() == node) {
-                neighbors.add(new Pair<>( edge.getWeight(),edge.getNodeTo()));
+                neighbors.add(new Pair<>(edge.getWeight(), edge.getNodeTo()));
             }
             if (edge.getNodeTo() == node) {
-                neighbors.add(new Pair<>(edge.getWeight(),edge.getNodeFrom()));
+                neighbors.add(new Pair<>(edge.getWeight(), edge.getNodeFrom()));
             }
         }
         return neighbors;
     }
+
     private void redrawGraph() {
         controller.redrawGraph();
     }
+
     public void highlightNodesAndEdge(Node sourceNode, Node destinationNode) {
         calculateShortestPath(); // Ensure the shortest path is calculated
 
@@ -98,7 +109,6 @@ public class Dijkstra {
                 Node nextNode = shortestPath.get(i + 1);
                 highlightNodeAndEdge(currentNode, nextNode);
             }
-
             // Highlight the last edge (if there is one)
             if (pathSize >= 1) {
                 Node lastNode = shortestPath.get(pathSize - 1);
@@ -134,6 +144,7 @@ public class Dijkstra {
 
         redrawGraph();
     }
+
     public Node getNextHighlightedNode(Node currentNode) {
         List<Node> path = shortestPaths.get(currentNode);
         if (path != null && path.size() > 1) {
@@ -141,6 +152,7 @@ public class Dijkstra {
         }
         return null;
     }
+
     public void clearHighlights() {
         for (Node node : graph.getNodes()) {
             node.setHighlighted(false);
@@ -169,18 +181,11 @@ public class Dijkstra {
                 String path = "";
                 List<Node> shortestPath = shortestPaths.get(node);
                 for (Node node1 : shortestPath) {
-                    node1.setHighlighted(true);
+                    path += node1.getId() + " -> ";
                 }
+                path += graph.getDestination().getId();
+                System.out.println(path);
             }
         }
-    }
-
-
-    public void printTraversal() {
-        String path = "";
-        for (Node node : traversalPath) {
-            path += node.getId() + " -> ";
-        }
-        System.out.println(path);
     }
 }

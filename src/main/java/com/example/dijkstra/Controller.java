@@ -17,6 +17,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 
 import javax.swing.*;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -267,6 +269,7 @@ public class Controller extends Canvas {
     }
 
     public void redrawGraph() {
+        // Vẽ trạng thái của source node và target node
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
         for (Edge edge : graph.getEdges()) {
             drawUtils.drawEdge(edge);
@@ -274,8 +277,6 @@ public class Controller extends Canvas {
         for (Node node : graph.getNodes()) {
             drawUtils.drawNode(node);
         }
-
-        // Vẽ trạng thái của source node và target node
         if (graph.getSource() != null) {
             drawUtils.drawSourceNode(graph.getSource());
         }
@@ -305,15 +306,41 @@ public class Controller extends Canvas {
         dijkstra.blinkAllNodes();
     }
 
+    void drawSolution(Dijkstra d){
+        Map<Node, List<Node>> shortestPaths = d.getShortestPaths();
+        for (Node node : graph.getNodes()) {
+            if (node == graph.getDestination()) {
+                List<Node> shortestPath = shortestPaths.get(node);
+                if (shortestPath != null) {
+                    int pathSize = shortestPath.size();
+                    for (int i = 0; i < pathSize - 1; i++) {
+                        Node currentNode = shortestPath.get(i);
+                        Node nextNode = shortestPath.get(i + 1);
+                        Edge edge = graph.findEdge(currentNode, nextNode);
+                        drawUtils.drawWithDelay(currentNode);
+                        drawUtils.drawWithDelay(edge);
+                        drawUtils.drawWithDelay(nextNode);
+                    }
+                    // Highlight the last edge (if there is one)
+                    if (pathSize >= 1) {
+                        Node lastNode = shortestPath.get(pathSize - 1);
+                        Edge edge = graph.findEdge(lastNode, node);
+                        drawUtils.drawWithDelay(lastNode);
+                        drawUtils.drawWithDelay(edge);
+                        drawUtils.drawWithDelay(node);
+                    }
+                }
+            }
+        }
+    }
     @FXML
     void runPressed(ActionEvent event) {
         if (graph.getSource() != null && graph.getDestination() != null) {
             Dijkstra d = new Dijkstra(graph,this);
             d.calculateShortestPath();
+            d.highlightNodesAndEdge(graph.getSource(), graph.getDestination());
+            drawSolution(d);
             d.printPaths();
-            d.printTraversal();
-            d.highlightNodesAndEdge(graph.getSource(),graph.getDestination());
-            redrawGraph(); // Cập nhật trạng thái của đồ thị sau khi tính toán đường đi ngắn nhất
         }
     }
 
