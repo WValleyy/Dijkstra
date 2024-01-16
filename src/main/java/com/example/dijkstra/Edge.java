@@ -1,15 +1,20 @@
 package com.example.dijkstra;
 
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+
 public class Edge {
+    private final BooleanProperty highlightedd = new SimpleBooleanProperty(false);
     private Node from;
     private Node to;
     private int weight = 1;
+    private boolean highlighted;
 
-    public Edge(Node from, Node to){
-        this.from = from;
-        this.to = to;
-    }// 2 đầu của cạnh
+    public Edge(Node one, Node two){
+        this.from = one;
+        this.to = two;
+    }
 
     public Node getNodeFrom(){
         return from;
@@ -40,5 +45,16 @@ public class Edge {
         return "Edge ~ "
                 + getNodeFrom().getId() + " - "
                 + getNodeTo().getId();
+    }
+    public void setHighlighted(boolean highlighted){
+        this.highlighted=highlighted;
+        this.highlightedd.set(highlighted);
+    }
+    public boolean getHighlighted(){
+        return highlighted;
+    }
+    // highlightProperty
+    public BooleanProperty highlightedProperty() {
+        return highlightedd;
     }
 }

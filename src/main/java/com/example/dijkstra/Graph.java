@@ -14,6 +14,17 @@ public class Graph {
     private Node source;
     private Node destination;
 
+    private Node visit;
+
+    private boolean solved = false;
+
+    public void setSolved(boolean solved) {
+        this.solved = solved;
+    }
+
+    public boolean isSolved() {
+        return solved;
+    }
 
     public void setNodes(List<Node> nodes){
         this.nodes = nodes;
@@ -38,35 +49,52 @@ public class Graph {
 
         return false;
     }
-// set source node
+
     public void setSource(Node node){
         if(nodes.contains(node))
             source = node;
     }
 
+    public void setVisit(Node node){
+        if(nodes.contains(node))
+            visit = node;
+    }
 
 
     public Node getSource(){
         return source;
+    }
+    public Node getVisit(){
+        return visit;
+    }
+
+    public Node getDestination(){
+        return destination;
     }
 
     public boolean isSource(Node node){
         return node == source;
     }
 
+    public boolean isDestination(Node node){
+        return node == destination;
+    }
 
+    public void addNode(Point2D coord){
+        Node node = new Node(coord);
+        addNode(node);
+    }
 
     public void addNode(Node node){
         node.setId(count);
         nodes.add(node);
         count++;
-        if(node.getId()==1)
-            source = node;
+
     }
 
-    public void addEdge(Edge new_edge){
-        for(Edge edge : edges){
-            if(edge.equals(new_edge)){
+    public void addEdge(Edge new_edge) {
+        for (Edge edge : edges) {
+            if (edge.equals(new_edge) || (edge.getNodeFrom() == new_edge.getNodeTo() && edge.getNodeTo() == new_edge.getNodeFrom())) {
                 return;
             }
         }
@@ -98,8 +126,25 @@ public class Graph {
         count = 1;
         nodes.clear();
         edges.clear();
-        source = null;
+        solved = false;
 
+        source = null;
+        destination = null;
+    }
+    public Edge findEdge(Node node1, Node node2){
+        for (Edge edge : edges){
+            if (edge.getNodeFrom() == node1 && edge.getNodeTo() == node2){
+                return edge;
+            }
+            if (edge.getNodeFrom() == node2 && edge.getNodeTo() == node1){
+                return edge;
+            }
+        }
+        return null;
+    }
+
+    public void setDestination(Node targetNode) {
+        destination=targetNode;
     }
 
 }

@@ -1,5 +1,9 @@
 package com.example.dijkstra;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.PauseTransition;
+import javafx.animation.Timeline;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseEvent;
@@ -8,14 +12,17 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class DrawUtils {
     private GraphicsContext gc;
     private static int radius = 20;
-
+    private Timeline timeline = new Timeline();
     public DrawUtils(GraphicsContext graphicsContext) {
         this.gc = graphicsContext;
     }
@@ -27,7 +34,7 @@ public class DrawUtils {
         Point2D p = n.getCoord();
 
         return p.distance(x, y) <= radius;
-    }// check nếu tọa độ chuột nằm trong node hay khong
+    }
 
     public static boolean isOverlapping(MouseEvent e, Node n) {
         double x =  e.getX();
@@ -37,7 +44,7 @@ public class DrawUtils {
         double distance = point.distance(x, y);
 
         return distance < 2*radius;
-    }// check nếu tạo 1 node mới đè lên node cũ
+    }
 
     private static int dist2(Point2D v, Point2D w) {
         return (int) (Math.pow((v.getX() - w.getX()), 2) + Math.pow(v.getY() - w.getY(), 2));
@@ -55,7 +62,7 @@ public class DrawUtils {
     }
     private static int distToSegment(Point2D p, Point2D v, Point2D w) {
         return (int) Math.sqrt(distToSegmentSquared(p, v, w));
-    }// cả cái đống này là tính khoảng cách từ điểm đến đoạn thang
+    }
 
     public static boolean isOnEdge(MouseEvent e, Edge edge) {
         double x = e.getX();
@@ -64,7 +71,9 @@ public class DrawUtils {
         int dist = distToSegment( mouse_coor,
                 edge.getNodeFrom().getCoord(),
                 edge.getNodeTo().getCoord() );
-        return dist < 6;// nếu đưa chuột lại gần hơn 6pixel thì tính là on edge
+        if (dist<6)
+            return true;
+        return false;
     }
 
     public static Color parseColor(String colorStr) {
@@ -73,19 +82,20 @@ public class DrawUtils {
         int blue = Integer.valueOf(colorStr.substring(5, 7), 16);
 
         return Color.rgb(red, green, blue);
-    }// tạo màu cho node
+    }
 
 
-    public void drawWeightText(String text, int x, int y) {
-        gc.setFill(Color.web("#cccccc"));
+    public void drawWeightText(String text, int x, int y) { //vẽ văn bản cho trọng số tại vị trí (x,y)
+        gc.setFill(Color.web("#cccccc")); //background màu xám nhạt
+        Font font = gc.getFont(); // default hoặc custom
         Text textNode = new Text(text);
-        textNode.setFont(gc.getFont()); // Set the same font as the GraphicsContext
+        textNode.setFont(gc.getFont()); // same font
 
-        double t_width = textNode.getBoundsInLocal().getWidth();
+        double t_width = textNode.getBoundsInLocal().getWidth(); // trả về chiều rộng văn bản
         double ascent = textNode.getBaselineOffset();
 
-        gc.fillText(text, x - t_width / 2, y + ascent / 2);
-    }// vẽ text nằm giữa đoạn thẳng
+        gc.fillText(text, x - t_width / 2, y + ascent / 2); // viết tại vị trí trung tâm
+    }
 
     public void drawWeight(Edge edge) {
         Point2D from = edge.getNodeFrom().getCoord();
@@ -96,47 +106,49 @@ public class DrawUtils {
         int rad = radius/2;
         gc.fillOval(x-rad, y-rad, 2*rad, 2*rad);
         drawWeightText(String.valueOf(edge.getWeight()), x, y);
-    }// vẽ text nằm giữa đoạn thẳng
-
-    public void drawPath(List<Node> path) {
-        List<Edge> edges = new ArrayList<>();
-        for(int i = 0; i < path.size()-1; i++) {
-            edges.add(new Edge(path.get(i), path.get(i+1)));
-        }
-
-        for(Edge edge : edges) {
-            drawPath(edge);
-        }
+        // Vẽ hình tròn sau đó vẽ trọng số tại trung điểm của cạnh
     }
 
-    private void drawBoldEdge(Edge edge){
-        Point2D from = edge.getNodeFrom().getCoord();
-        Point2D to = edge.getNodeTo().getCoord();
-        gc.setLineWidth(8);
-        gc.strokeLine(from.getX(), from.getY(), to.getX(), to.getY());
-        int x = (int) ((from.getX() + to.getX())/2);
-        int y = (int) ((from.getY() + to.getY())/2);
-
-        int rad = 13;
-        gc.fillOval(x-rad, y-rad, 2*rad, 2*rad);
-    }
-    public void drawPath(Edge edge) {
-        gc.setFill(parseColor("#00BCD4"));
-        drawBoldEdge(edge);// vẽ lại cạnh đang duyệt
-    }
     public void drawEdge(Edge edge) {
         gc.setFill(parseColor("#555555"));
         drawBaseEdge(edge);
         drawWeight(edge);
+        //set a delay here for 2 seconds
+    }
+    public void drawWithDelay(Node node) {
+        PauseTransition pause = new PauseTransition(Duration.millis(2000));
+        pause.setOnFinished(event -> drawNode(node));
+        pause.play();
     }
 
-    private void drawBaseEdge(Edge edge){
+    public void drawWithDelay(Edge edge) {
+        PauseTransition pause = new PauseTransition(Duration.millis(2000));
+        pause.setOnFinished(event -> drawEdge(edge));
+        pause.play();
+    }
+
+    private void drawBaseEdge(Edge edge) {
         Point2D from = edge.getNodeFrom().getCoord();
         Point2D to = edge.getNodeTo().getCoord();
+
+
+        gc.setStroke(parseColor("#555555")); // Default color
+
+
+
         gc.setLineWidth(3);
         gc.strokeLine(from.getX(), from.getY(), to.getX(), to.getY());
     }
+    public void drawFinalEdge(Edge edge) {
+        Point2D from = edge.getNodeFrom().getCoord();
+        Point2D to = edge.getNodeTo().getCoord();
 
+        gc.setStroke(parseColor("#FFD700"));
+
+
+        gc.setLineWidth(3);
+        gc.strokeLine(from.getX(), from.getY(), to.getX(), to.getY());
+    }
 
     public void drawSourceNode(Node node){
         gc.setFill(parseColor("#00BCD4"));
@@ -151,21 +163,65 @@ public class DrawUtils {
         drawCentreText(String.valueOf(node.getId()), node.getX(), node.getY());
     }
 
-
-
-    public void drawNode(Node node){
-        gc.setFill(parseColor("#9C27B0"));
+    public void drawTargetNode(Node node) {
+        gc.setFill(parseColor("#FF5722")); // Màu sắc cho target node
         gc.fillOval(node.getX() - radius, node.getY() - radius, 2 * radius, 2 * radius);
 
-        radius-=5;
-        gc.setFill(parseColor("#E1BEE7"));
+        radius -= 5;
+        gc.setFill(parseColor("#FFCCBC")); // Màu sắc cho phần fill bên trong target node
         gc.fillOval(node.getX() - radius, node.getY() - radius, 2 * radius, 2 * radius);
 
-        radius+=5;
-        gc.setFill(parseColor("#9C27B0"));
+        radius += 5;
+        gc.setFill(parseColor("#FF5722"));
         drawCentreText(String.valueOf(node.getId()), node.getX(), node.getY());
     }
 
+    public void drawVisitNode(Node node) {
+        gc.setFill(parseColor("#C71585")); // Màu sắc cho target node
+        gc.fillOval(node.getX() - radius, node.getY() - radius, 2 * radius, 2 * radius);
+
+        radius -= 5;
+        gc.setFill(parseColor("#FFCCBC")); // Màu sắc cho phần fill bên trong target node
+        gc.fillOval(node.getX() - radius, node.getY() - radius, 2 * radius, 2 * radius);
+
+        radius += 5;
+        gc.setFill(parseColor("#FF5722"));
+        drawCentreText(String.valueOf(node.getId()), node.getX(), node.getY());
+    }
+
+
+    public void drawNode(Node node) {
+
+            gc.setFill(parseColor("#9C27B0")); // Default color
+
+
+        gc.fillOval(node.getX() - radius, node.getY() - radius, 2 * radius, 2 * radius);
+
+        radius -= 5;
+        gc.setFill(parseColor("#E1BEE7"));
+        gc.fillOval(node.getX() - radius, node.getY() - radius, 2 * radius, 2 * radius);
+
+        radius += 5;
+        gc.setFill(parseColor("#9C27B0"));
+        drawCentreText(String.valueOf(node.getId()), node.getX(), node.getY());
+    }
+        public void drawfinalPathNode(Node node) {
+
+
+                gc.setFill(parseColor("#FFFF00")); // Highlighted color, you can change it as desired
+
+
+
+            gc.fillOval(node.getX() - radius, node.getY() - radius, 2 * radius, 2 * radius);
+
+            radius -= 5;
+            gc.setFill(parseColor("#E1BEE7"));
+            gc.fillOval(node.getX() - radius, node.getY() - radius, 2 * radius, 2 * radius);
+
+            radius += 5;
+            gc.setFill(parseColor("#9C27B0"));
+            drawCentreText(String.valueOf(node.getId()), node.getX(), node.getY());
+        }
 
     public void drawCentreText(String text, int x, int y) {
 
@@ -177,6 +233,6 @@ public class DrawUtils {
         double ascent = textNode.getBaselineOffset();
 
         gc.fillText(text, x - t_width / 2, y + ascent / 2);
-    }// vẽ text nằm giữa
-
+        //đảm bảo căn giữa theo chiều ngang hay dọc
+    }
 }

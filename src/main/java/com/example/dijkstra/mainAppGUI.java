@@ -6,7 +6,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-public class test extends Application {
+public class mainAppGUI extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -16,8 +16,9 @@ public class test extends Application {
         Parent root = loader.load();
 
         // Set up the primary stage
-        primaryStage.setTitle("JavaFX Test");
+        primaryStage.setTitle("Dijkstra");
         primaryStage.setScene(new Scene(root, 800, 600));
+        primaryStage.setResizable(false);
 
         // Get the controller
 

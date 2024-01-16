@@ -1,6 +1,10 @@
 package com.example.dijkstra;
 
-
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.PauseTransition;
+import javafx.animation.Timeline;
+import javafx.util.Duration;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
@@ -8,11 +12,15 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 
 import javafx.scene.control.Alert;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 
 import javax.swing.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -31,6 +39,65 @@ public class Controller extends Canvas {
     double pressY;
     private Edge hoveredEdge;
     private boolean deleteNode = false;
+    private Dijkstra dijkstra;
+
+    // Trong class Controller
+    @FXML
+    private TextField sourceNodeIdTextField;
+
+    @FXML
+    private TextField targetNodeIdTextField;
+
+    private Iterator<Node> nodeIterator;
+    @FXML
+    void setSourceNode(ActionEvent event) {
+        try {
+            int sourceNodeId = Integer.parseInt(sourceNodeIdTextField.getText());
+            Node sourceNode = findNodeById(sourceNodeId);
+            if (sourceNode != null) {
+                graph.setSource(sourceNode);
+                redrawGraph();
+            } else {
+                showAlert("Node with ID " + sourceNodeId + " not found.");
+            }
+        } catch (NumberFormatException e) {
+            showAlert("Invalid Source Node ID. Please enter a valid integer.");
+        }
+    }
+
+    @FXML
+    void setTargetNode(ActionEvent event) {
+        try {
+            int targetNodeId = Integer.parseInt(targetNodeIdTextField.getText());
+            Node targetNode = findNodeById(targetNodeId);
+            if (targetNode != null) {
+                graph.setDestination(targetNode);
+                redrawGraph();
+            } else {
+                showAlert("Node with ID " + targetNodeId + " not found.");
+            }
+        } catch (NumberFormatException e) {
+            showAlert("Invalid Target Node ID. Please enter a valid integer.");
+        }
+    }
+
+    private Node findNodeById(int nodeId) {
+        for (Node node : graph.getNodes()) {
+            if (node.getId() == nodeId) {
+                return node;
+            }
+        }
+        return null;
+    }
+
+    private void showAlert(String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Warning");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
 
     @FXML
     public void initialize() {
@@ -47,6 +114,7 @@ public class Controller extends Canvas {
             handleDrag(event);
         }
     });
+        dijkstra = new Dijkstra(graph, this);
         canvas.setOnMouseReleased(this::handleMouseReleased);
 
         canvas.setOnMouseMoved(this::handleMouseMove);
@@ -54,38 +122,49 @@ public class Controller extends Canvas {
 
     }
 
+    private Node getNodeAtPosition(MouseEvent e) {
+        for (Node node : graph.getNodes()) {
+            if (DrawUtils.isWithinBounds(e, node)) {
+                return node;
+            }
+        }
+        return null;
+    }
+
+
     private void handleMouseMove(MouseEvent e) {
-        hoveredEdge = null; // moi lan an chuot xuong reset lai
+        //Kiểm tra xem chuột có đang di chuyển trên cạnh nào không
+        hoveredEdge = null;
         for (Edge edge : graph.getEdges()) {
             if(DrawUtils.isOnEdge(e, edge)) {
                 hoveredEdge = edge;
                 break;
             }
-        }// nếu chuoot gan canh thi set canh day la hovered, khong thi thoi
+        }
     }
 
 
     private void handleMouseReleased(MouseEvent e) {
 
-
+        //Nếu không di chuyển chuột, gọi sự kiện handleClick
         if (pressX == e.getX() && pressY == e.getY()) {
 
             handleClick(e);
             pressX = 0;
             pressY = 0;
             return;
-        }// nếu khi thả chuột ra, tọa độ không đổi thì tính là click, làm ntn bởi nếu click xong drag rồi thả thì nếu setOnMouseClick nó vẫn tính và tạo node mới
+        }
+        //nếu selected node đã được chọn và nếu chuột dừng trong vùng vòng tronf của node thì vẽ cạnh
         for (Node node : graph.getNodes()) {
             if(selectedNode !=null && node!= selectedNode && DrawUtils.isWithinBounds(e, node)){
                 Edge new_edge = new Edge(selectedNode, node);
                 graph.addEdge(new_edge);
-
-            }// nếu không thì xét xem trong các node có node nằm trong tọa độ chuot tại thời điểm thả không, nếu có thì tạo cạnh
-            // xử lí cho sự kiện press xong drag chuột để tạo cạnh
+                graph.setSolved(false);
+            }
         }
-        selectedNode = null;// giải phóng node đang chọn
+        selectedNode = null;
 
-        redrawGraph();// vẽ lại
+        redrawGraph();
     }
 
 
@@ -93,19 +172,22 @@ public class Controller extends Canvas {
     private void handleMoveNode(MouseEvent e) {
         pressX = e.getX();
         pressY = e.getY();
-        deleteNode = e.isSecondaryButtonDown();
+        deleteNode = e.isSecondaryButtonDown(); //trả về True nếu đang bấm chuột phải( xóa)
+        //Kiểm tra xem chuột phải có đang được nhấn không
         Node clickedNode = getNodeAtPosition(e);
         if (clickedNode != null) {
             selectedNode = clickedNode;
 
-        }// mỗi khi ấn xuống, neu có toa do chuot nằm trong node nào đó thì sẽ set node thành selected
+        }
 
 
     }
-    private void handleClick(MouseEvent e) {// xử lí sự kiện click chuột
+    private void handleClick(MouseEvent e) {
 
         Node clickedNode = getNodeAtPosition(e);
-        if (clickedNode != null) {// nếu đang click vào node thì xử lí xóa hoặc chọn source node
+        // nếu có node thì trả về node, không thì trả về null3
+
+        if (clickedNode != null) {
 
             if (e.isControlDown() && deleteNode) {
 
@@ -122,7 +204,7 @@ public class Controller extends Canvas {
             }
             return;
         }
-        if(hoveredEdge != null) {// nếu đang chọn cạnh thì set weight
+        if(hoveredEdge != null) {
             TextInputDialog dialog = new TextInputDialog();
             dialog.setTitle("Enter Weight");
             dialog.setHeaderText(null);
@@ -130,6 +212,7 @@ public class Controller extends Canvas {
 
             Optional<String> result = dialog.showAndWait();
             if (result.isPresent()) {
+
                 String weightInput = result.get();
             try {
                 int weight = Integer.parseInt(weightInput);
@@ -154,9 +237,9 @@ public class Controller extends Canvas {
 
                 alert.showAndWait();
                 return;
-            }// check xem có chồng lấn khi tạo node không
+            }
         }
-        if (!deleteNode && hoveredEdge == null) {// nếu ấn chuot phai va khong co canh nao duoc chọn thì tạo node
+        if (!deleteNode && hoveredEdge == null) {
             Point2D p = new Point2D(e.getX(), e.getY());
             Node newNode = new Node(p);
             graph.addNode(newNode);
@@ -181,48 +264,128 @@ public class Controller extends Canvas {
                 }
 
             }
-// xử lí khi drag node
-            redrawGraph();// liên tục vẽ lại node và cạnh khi thay đổi tọa độ node
+
+            redrawGraph();
             }
-
-
 
     }
 
-    private Node getNodeAtPosition(MouseEvent e) {
-        for (Node node : graph.getNodes()) {
-            if (DrawUtils.isWithinBounds(e, node)) {
-                return node;
-            }
-        }
-        return null;
-    }// tìm xem có node nào tại tọa độ chuột không
-
-    private void redrawGraph() {
+    public void redrawGraph() {
+        // Vẽ trạng thái của source node và target node
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
         for (Edge edge : graph.getEdges()) {
             drawUtils.drawEdge(edge);
         }
         for (Node node : graph.getNodes()) {
-            if (graph.isSource(node)) {
-                drawUtils.drawSourceNode(node);
-            }else {
-                drawUtils.drawNode(node);
+            drawUtils.drawNode(node);
+        }
+        if (graph.getSource() != null) {
+            drawUtils.drawSourceNode(graph.getSource());
+        }
+        if (graph.getDestination() != null) {
+            drawUtils.drawTargetNode(graph.getDestination());
+        }
+        if (graph.getVisit() != null) {
+            drawUtils.drawVisitNode(graph.getVisit());
+        }
+    }
+
+    void highlightNodesAndEdge(ActionEvent event) {
+        if (graph.getSource() != null && graph.getDestination() != null) {
+            dijkstra.highlightNodesAndEdge(graph.getSource(), graph.getDestination());
+            redrawGraph();
+        }
+    }
+    void unhighlightNodesAndEdge(ActionEvent event) {
+        if (selectedNode != null) {
+            Node nextNode = dijkstra.getNextHighlightedNode(selectedNode);
+            if (nextNode != null) {
+                dijkstra.unhighlightNodeAndEdge(selectedNode, nextNode);
+                redrawGraph();
             }
         }
     }
 
-
     @FXML
-    void runPressed(ActionEvent event) {
-        if (graph.getSource() != null) {
-            Dijkstra d =new Dijkstra(graph);
-            d.calculateShortestPath();
-            d.printPaths(graph.getNodes());
-            d.printTravelsal();
-        }
-
+    void blinkAllNodes(ActionEvent event) {
+        dijkstra.blinkAllNodes();
     }
 
+    void drawSolution(Dijkstra d){
+        Map<Node, List<Node>> shortestPaths = d.getShortestPaths();
+        for (Node node : graph.getNodes()) {
+            if (node == graph.getDestination()) {
+                List<Node> shortestPath = shortestPaths.get(node);
+                if (shortestPath != null) {
+                    int pathSize = shortestPath.size();
+                    for (int i = 0; i < pathSize - 1; i++) {
+                        Node currentNode = shortestPath.get(i);
+                        Node nextNode = shortestPath.get(i + 1);
+                        Edge edge = graph.findEdge(currentNode, nextNode);
+                        drawUtils.drawfinalPathNode(currentNode);
+                        drawUtils.drawFinalEdge(edge);
+                        drawUtils.drawfinalPathNode(nextNode);
+                    }
+                    // Highlight the last edge (if there is one)
+                    if (pathSize >= 1) {
+                        Node lastNode = shortestPath.get(pathSize - 1);
+                        Edge edge = graph.findEdge(lastNode, node);
+                        drawUtils.drawfinalPathNode(lastNode);
+                        drawUtils.drawFinalEdge(edge);
+                        drawUtils.drawfinalPathNode(node);
+                    }
+                }
+            }
+        }
+    }
+
+    public void drawTraversal(Dijkstra d) {
+        List<Node> traversalPath = d.getTraversalPath();
+        nodeIterator = traversalPath.iterator();
+        processNextNode(d);
+
+    }
+    private void processNextNode(Dijkstra d) {
+        if (nodeIterator.hasNext()) {
+            Node node = nodeIterator.next();
+            graph.setVisit(node);
+            redrawGraph();
+
+            PauseTransition pause = new PauseTransition(Duration.seconds(3));
+            pause.setOnFinished(event -> processNextNode(d));
+            pause.play();
+        }else{
+            graph.setVisit(null);
+            redrawGraph();
+            drawSolution(d);
+        }
+    }
+    @FXML
+    void runPressed(ActionEvent event) {
+        if (graph.getSource() != null && graph.getDestination() != null) {
+            for (Node node: graph.getNodes()){
+                node.setHighlighted(false);
+            }
+            for (Edge edge : graph.getEdges()){
+                edge.setHighlighted(false);
+            }
+            Dijkstra d = new Dijkstra(graph,this);
+            d.calculateShortestPath();
+            //d.highlightNodesAndEdge(graph.getSource(), graph.getDestination());
+            //drawSolution(d);
+            drawTraversal(d);
+
+            d.printTravelsal();
+            d.printPaths();
+            d.printSelect();
+        }
+    }
+
+    @FXML
+    void resetPressed(ActionEvent event) {
+        graph = new Graph();
+        redrawGraph();
+    }
 
 }
+
