@@ -149,6 +149,16 @@ public class DrawUtils {
         gc.setLineWidth(3);
         gc.strokeLine(from.getX(), from.getY(), to.getX(), to.getY());
     }
+    public void drawPointingEdge(Edge edge) {
+        Point2D from = edge.getNodeFrom().getCoord();
+        Point2D to = edge.getNodeTo().getCoord();
+
+        gc.setStroke(parseColor("#FC6600"));
+
+
+        gc.setLineWidth(3);
+        gc.strokeLine(from.getX(), from.getY(), to.getX(), to.getY());
+    }
 
     public void drawSourceNode(Node node){
         gc.setFill(parseColor("#00BCD4"));
@@ -222,6 +232,23 @@ public class DrawUtils {
             gc.setFill(parseColor("#9C27B0"));
             drawCentreText(String.valueOf(node.getId()), node.getX(), node.getY());
         }
+    public void drawPointingPathNode(Node node) {
+
+
+        gc.setFill(parseColor("#FFA500")); // Highlighted color, you can change it as desired
+
+
+
+        gc.fillOval(node.getX() - radius, node.getY() - radius, 2 * radius, 2 * radius);
+
+        radius -= 5;
+        gc.setFill(parseColor("#E1BEE7"));
+        gc.fillOval(node.getX() - radius, node.getY() - radius, 2 * radius, 2 * radius);
+
+        radius += 5;
+        gc.setFill(parseColor("#9C27B0"));
+        drawCentreText(String.valueOf(node.getId()), node.getX(), node.getY());
+    }
 
     public void drawCentreText(String text, int x, int y) {
 

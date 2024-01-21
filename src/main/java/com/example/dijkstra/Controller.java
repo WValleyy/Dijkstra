@@ -311,6 +311,7 @@ public class Controller extends Canvas {
         dijkstra.blinkAllNodes();
     }
 
+
     void drawSolution(Dijkstra d){
         Map<Node, List<Node>> shortestPaths = d.getShortestPaths();
         for (Node node : graph.getNodes()) {
@@ -338,18 +339,45 @@ public class Controller extends Canvas {
             }
         }
     }
+    void drawPointingTraversal(Dijkstra d, Node desNode){
+        Map<Node, List<Node>> shortestPaths = d.getShortestPaths();
+        for (Node node : graph.getNodes()) {
+            if (node == desNode) {
+                List<Node> shortestPath = shortestPaths.get(node);
+                if (shortestPath != null) {
+                    int pathSize = shortestPath.size();
+                    for (int i = 0; i < pathSize - 1; i++) {
+                        Node currentNode = shortestPath.get(i);
+                        Node nextNode = shortestPath.get(i + 1);
+                        Edge edge = graph.findEdge(currentNode, nextNode);
+                        drawUtils.drawPointingPathNode(currentNode);
+                        drawUtils.drawPointingEdge(edge);
+                        drawUtils.drawPointingPathNode(nextNode);
+                    }
+                    // Highlight the last edge (if there is one)
+                    if (pathSize >= 1) {
+                        Node lastNode = shortestPath.get(pathSize - 1);
+                        Edge edge = graph.findEdge(lastNode, node);
+                        drawUtils.drawPointingPathNode(lastNode);
+                        drawUtils.drawPointingEdge(edge);
+                        drawUtils.drawPointingPathNode(node);
+                    }
+                }
+            }
+        }
+    }
 
     public void drawTraversal(Dijkstra d) {
-        List<Node> traversalPath = d.getTraversalPath();
+        List<Node> traversalPath = d.getSelectNode();
         nodeIterator = traversalPath.iterator();
         processNextNode(d);
-
-    }
+}
     private void processNextNode(Dijkstra d) {
         if (nodeIterator.hasNext()) {
             Node node = nodeIterator.next();
             graph.setVisit(node);
             redrawGraph();
+            drawPointingTraversal(d, node);
 
             PauseTransition pause = new PauseTransition(Duration.seconds(3));
             pause.setOnFinished(event -> processNextNode(d));
@@ -374,8 +402,6 @@ public class Controller extends Canvas {
             //d.highlightNodesAndEdge(graph.getSource(), graph.getDestination());
             //drawSolution(d);
             drawTraversal(d);
-
-            d.printTravelsal();
             d.printPaths();
             d.printSelect();
         }

@@ -23,6 +23,9 @@ public class Dijkstra {
     public List<Node> getTraversalPath() {
         return traversalPath;
     }
+    public List<Node> getSelectNode() {
+        return selectNode;
+    }
     public Map<Node, List<Node>> getShortestPaths() {
         return shortestPaths;
     }
@@ -55,6 +58,7 @@ public class Dijkstra {
 
 
     }
+
 */
     public void calculateShortestPath() {
         Node source = graph.getSource();
