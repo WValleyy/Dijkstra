@@ -108,6 +108,18 @@ public class Dijkstra {
 
         //clearHighlights();
     }
+    public ArrayList<Node> getNeibor(Node node){
+        ArrayList<Node> neibor = new ArrayList<>();
+        for (Edge edge : graph.getEdges()) {
+            if (edge.getNodeFrom() == node) {
+                neibor.add(edge.getNodeTo());
+            }
+            if (edge.getNodeTo() == node) {
+                neibor.add(edge.getNodeFrom());
+            }
+        }
+        return neibor;
+    }
 
     public List<Pair<Integer, Node>> getAdjacentNodes(Node node) {
         List<Pair<Integer, Node>> neighbors = new ArrayList<>();

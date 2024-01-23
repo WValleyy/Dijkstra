@@ -96,6 +96,20 @@ public class DrawUtils {
 
         gc.fillText(text, x - t_width / 2, y + ascent / 2); // viết tại vị trí trung tâm
     }
+    public void lightUpNodeInQuere(ArrayList<Node> quere) {
+        for (Node node : quere) {
+            gc.setFill(parseColor("#FF1694"));
+            gc.fillOval(node.getX() - radius, node.getY() - radius, 2 * radius, 2 * radius);
+
+            radius -= 5;
+            gc.setFill(parseColor("#FC4C4E"));
+            gc.fillOval(node.getX() - radius, node.getY() - radius, 2 * radius, 2 * radius);
+
+            radius += 5;
+            gc.setFill(parseColor("#FFD700"));
+            drawCentreText(String.valueOf(node.getId()), node.getX(), node.getY());
+        }
+    }
 
     public void drawWeight(Edge edge) {
         Point2D from = edge.getNodeFrom().getCoord();
@@ -199,7 +213,6 @@ public class DrawUtils {
         drawCentreText(String.valueOf(node.getId()), node.getX(), node.getY());
     }
 
-
     public void drawNode(Node node) {
 
             gc.setFill(parseColor("#9C27B0")); // Default color
@@ -261,5 +274,10 @@ public class DrawUtils {
 
         gc.fillText(text, x - t_width / 2, y + ascent / 2);
         //đảm bảo căn giữa theo chiều ngang hay dọc
+    }
+    public void drawNormalNodes(ArrayList<Node> nodes) {
+        for (Node node : nodes) {
+            drawNode(node);
+        }
     }
 }

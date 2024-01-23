@@ -18,10 +18,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 
 import javax.swing.*;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 
 public class Controller extends Canvas {
@@ -271,6 +268,8 @@ public class Controller extends Canvas {
     }
 
     public void redrawGraph() {
+        this.q = new ArrayList<>();
+        this.visited = new ArrayList<>();
         // Vẽ trạng thái của source node và target node
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
         for (Edge edge : graph.getEdges()) {
@@ -366,22 +365,45 @@ public class Controller extends Canvas {
             }
         }
     }
-
     public void drawTraversal(Dijkstra d) {
         List<Node> traversalPath = d.getSelectNode();
         nodeIterator = traversalPath.iterator();
+        q.add(graph.getSource());
+
         processNextNode(d);
 }
+    // Queue list contain source node
+    private ArrayList<Node> q = new ArrayList<>();
+    private ArrayList<Node> visited = new ArrayList<>();
+    public void updateQueue(Node node) {
+        ArrayList<Node> updateingNodes = dijkstra.getNeibor(node);
+        if (q.size() == 0) {
+            return;
+        } else {
+            for (Node n : updateingNodes) {
+                if (!visited.contains(n) && !q.contains(n)) {
+                    q.add(n);
+                }
+            }
+        }
+        if (q.contains(node)){
+            q.remove(node);
+        }
+        drawUtils.lightUpNodeInQuere(q);
+    }
+    private PauseTransition pause = new PauseTransition(Duration.seconds(2));
     private void processNextNode(Dijkstra d) {
         if (nodeIterator.hasNext()) {
             Node node = nodeIterator.next();
+            ArrayList<Node> neibor = d.getNeibor(node);
             graph.setVisit(node);
-            redrawGraph();
             drawPointingTraversal(d, node);
-
-            PauseTransition pause = new PauseTransition(Duration.seconds(3));
+            drawUtils.lightUpNodeInQuere(neibor);
             pause.setOnFinished(event -> processNextNode(d));
             pause.play();
+            //set pause to play right here
+//            drawUtils.drawNormalNodes(neibor);
+
         }else{
             graph.setVisit(null);
             redrawGraph();
