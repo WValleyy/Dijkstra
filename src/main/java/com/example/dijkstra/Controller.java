@@ -6,9 +6,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Alert;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
@@ -31,7 +29,8 @@ public class Controller extends Canvas {
     double pressY;
     private Edge hoveredEdge;
     private boolean deleteNode = false;
-
+    @FXML
+    private Button helpbutton;
     @FXML
     private TextField sourceNodeIdTextField;
 
@@ -100,6 +99,30 @@ public class Controller extends Canvas {
         canvas.setOnMouseMoved(this::handleMouseMove);
 
 
+    }
+    @FXML
+    void showInstructions(ActionEvent event) {
+        String instructions = "Instructions for using the application:\n"
+                + "1. Left-click on the canvas to add a node.\n"
+                + "2. Right-click and hold shift on a node to delete it.\n"
+                + "3. Write in the text field and click to select source node.\n"
+                + "4. Left-click on an edge to set its weight.\n"
+                + "5. Drag a node while holding Ctrl to move it.\n"
+                + "6. Click 'Run' to start visualizing the Dijkstra algorithm\n"
+                + "7. Click 'Reset' to set all become default with nothing on the screen.\n"
+                + "8. Click 'Restart' to run again.";
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Instructions");
+        alert.setHeaderText(null);
+        alert.setContentText(null);
+
+        TextArea textArea = new TextArea(instructions);
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+        alert.getDialogPane().setContent(textArea);
+
+        alert.showAndWait();
     }
 
     private Node getNodeAtPosition(MouseEvent e) {
@@ -284,14 +307,19 @@ public class Controller extends Canvas {
             graph.setLastestVisitedNode(visited);
             addShortestPathsEdge(visited);
             redrawGraph();
+            pause.setOnFinished(
+                    event->{
+                        LinkedList<Node> adjacencyNode = visitedPaths.get(visited);
+                        PauseTransition pause2 = new PauseTransition(Duration.seconds(2 * adjacencyNode.size() + 3));
+                        Iterator<Node> nodeIterator = adjacencyNode.iterator();
+                        processNextNode(nodeIterator);
+                        pause2.setOnFinished(event2 -> processVisitedNode());
+                        pause2.play();
+                    }
+            );
+            pause.play();
 
 
-            LinkedList<Node> adjacencyNode = visitedPaths.get(visited);
-            PauseTransition pause2 = new PauseTransition(Duration.seconds(2 * adjacencyNode.size() + 3));
-            Iterator<Node> nodeIterator = adjacencyNode.iterator();
-            processNextNode(nodeIterator);
-            pause2.setOnFinished(event -> processVisitedNode());
-            pause2.play();
         }else{
             graph.setLastestVisitedNode(null);
             redrawGraph();

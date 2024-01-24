@@ -7,11 +7,11 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane prefHeight="717.0" prefWidth="788.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane prefHeight="717.0" prefWidth="788.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <ScrollPane prefHeight="458.0" prefWidth="788.0">
+      <ScrollPane layoutY="24.0" prefHeight="434.0" prefWidth="788.0">
          <content>
-            <AnchorPane fx:id="drawPane" minHeight="0.0" minWidth="0.0" prefHeight="543.0" prefWidth="1000.0" />
+            <AnchorPane fx:id="drawPane" minHeight="0.0" minWidth="0.0" prefHeight="435.0" prefWidth="1000.0" />
          </content>
       </ScrollPane>
       <Button layoutX="410.0" layoutY="536.0" mnemonicParsing="false" onAction="#runPressed" text="Run" />
@@ -26,5 +26,10 @@
       <HBox layoutX="32.0" layoutY="573.0" spacing="10.0" />
       <Button layoutX="477.0" layoutY="536.0" mnemonicParsing="false" onAction="#resetPressed" text="Reset" />
       <Button layoutX="546.0" layoutY="536.0" mnemonicParsing="false" onAction="#restartPressed" text="Restart" />
+      <HBox prefHeight="25.0" prefWidth="86.0">
+         <children>
+            <Button fx:id="helpButton" mnemonicParsing="false" onAction="#showInstructions" prefHeight="25.0" prefWidth="86.0" text="Help" />
+         </children>
+      </HBox>
    </children>
 </AnchorPane>
