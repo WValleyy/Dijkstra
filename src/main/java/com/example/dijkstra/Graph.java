@@ -31,7 +31,9 @@ public class Graph {
     }
 
     public void setConsidering(Node node) {
-        if (nodes.contains(node))
+        if (node == null){
+            considering = null;
+        }else
             considering = node;
     }
 
@@ -48,7 +50,9 @@ public class Graph {
         return  lastestVisitedNode;
     }
     public  void setLastestVisitedNode(Node node){
-        if (nodes.contains(node))
+        if (node == null) {
+            lastestVisitedNode = null;
+        }else
             lastestVisitedNode = node;
     }
 

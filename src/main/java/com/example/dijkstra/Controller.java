@@ -334,6 +334,7 @@ public class Controller extends Canvas {
     void resetPressed(ActionEvent event) {
         graph = new Graph();
         visitedPaths = new HashMap<>();
+
         hightLightVisitedNode = new ArrayList<>();
         hightLightEdge = new HashSet<>();
 
