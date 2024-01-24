@@ -1,80 +1,75 @@
 package com.example.dijkstra;
 
 
-import javafx.geometry.Point2D;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class Graph {
     private int count = 1;
-    private List<Node> nodes = new ArrayList<>();
-    private List<Edge> edges = new ArrayList<>();
+    private final List<Node> nodes = new ArrayList<>();
+    private final List<Edge> edges = new ArrayList<>();
 
     private Node source;
-    private Node destination;
+
+    private Node considering;
+
+    private Node lastestVisitedNode;
 
 
-    public void setNodes(List<Node> nodes){
-        this.nodes = nodes;
-    }
-
-    public List<Node> getNodes(){
+    public List<Node> getNodes() {
         return nodes;
     }
 
-    public void setEdges(List<Edge> edges){
-        this.edges = edges;
-    }
 
-    public List<Edge> getEdges(){
+    public List<Edge> getEdges() {
         return edges;
     }
 
-    public boolean isNodeReachable(Node node){
-        for(Edge edge : edges)
-            if(node == edge.getNodeFrom() || node == edge.getNodeTo())
-                return true;
-
-        return false;
-    }
-// set source node
-    public void setSource(Node node){
-        if(nodes.contains(node))
+    public void setSource(Node node) {
+        if (nodes.contains(node))
             source = node;
     }
 
+    public void setConsidering(Node node) {
+        if (nodes.contains(node))
+            considering = node;
+    }
 
 
-    public Node getSource(){
+    public Node getSource() {
         return source;
     }
 
-    public boolean isSource(Node node){
-        return node == source;
+    public Node getConsidering() {
+        return considering;
     }
 
+    public Node getLastestVisitedNode(){
+        return  lastestVisitedNode;
+    }
+    public  void setLastestVisitedNode(Node node){
+        if (nodes.contains(node))
+            lastestVisitedNode = node;
+    }
 
-
-    public void addNode(Node node){
+    public void addNode(Node node) {
         node.setId(count);
         nodes.add(node);
         count++;
-        if(node.getId()==1)
-            source = node;
+
     }
 
-    public void addEdge(Edge new_edge){
-        for(Edge edge : edges){
-            if(edge.equals(new_edge)){
+    public void addEdge(Edge new_edge) {
+        for (Edge edge : edges) {
+            if (edge.equals(new_edge) || (edge.getNodeFrom() == new_edge.getNodeTo() && edge.getNodeTo() == new_edge.getNodeFrom())) {
                 return;
             }
-        }
+        }// kiem tra nếu cạnh đã tồn tại thì không thêm nữa
 
         edges.add(new_edge);
     }
 
-    public void deleteNode(Node node){
+    public void deleteNode(Node node) {
 /*
         for (Edge edge : edges){
             if(edge.hasNode(node)){
@@ -83,24 +78,29 @@ public class Graph {
         }
 */          // lỗi xảy ra khi vừa loop vừa xóa do không đồng bộ hóa : ConcurrentModificationException
         List<Edge> delete = new ArrayList<>();
-        for (Edge edge : edges){
-            if(edge.hasNode(node)){
+        for (Edge edge : edges) {
+            if (edge.hasNode(node)) {
                 delete.add(edge);
             }
         }
-        for (Edge edge : delete){
+        for (Edge edge : delete) {
             edges.remove(edge);
         }
         nodes.remove(node);
     }
 
-    public void clear(){
-        count = 1;
-        nodes.clear();
-        edges.clear();
-        source = null;
-
+    public Edge findEdge(Node node1, Node node2) {
+        for (Edge edge : edges) {
+            if (edge.getNodeFrom() == node1 && edge.getNodeTo() == node2) {
+                return edge;
+            }
+            if (edge.getNodeFrom() == node2 && edge.getNodeTo() == node1) {
+                return edge;
+            }
+        }
+        return null;
     }
+
 
 }
 

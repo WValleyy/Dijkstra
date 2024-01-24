@@ -1,99 +1,130 @@
 package com.example.dijkstra;
 
-import javafx.scene.paint.Color;
+import javafx.util.Pair;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Dijkstra {
-    private boolean safe = false;
-    private String message = null;
-
     private Graph graph;
+    private Map<Integer, Double> distances;
+    private final List<Node> selectNode = new ArrayList<>();
+    private final Map<Node, List<Node>> shortestPaths = new HashMap<>();
+    private final Map<Node, LinkedList<Node>> visitPaths = new HashMap<>();
+    //shortestPaths.get(currentNode): Retrieves the current shortest path from the source to currentNode.
+    private final List<Node> traversalPath = new ArrayList<>();
 
-    private Map<Node, Integer> distances;
 
-    private List<Node> traversalPath = new ArrayList<>();
-    private List<Node> selectNode = new ArrayList<>();
-    public class NodeComparator implements Comparator<Node>  {
-        @Override
-        public int compare(Node node1, Node node2) {
-            return Integer.compare(distances.get(node1), distances.get(node2));
-        }
-    };
+    private final LinkedList<Node> visited = new LinkedList<>();
 
-    public Dijkstra(Graph graph){
+    public Dijkstra() {
+    }
+
+
+    public Map<Node, LinkedList<Node>> getVisitedPaths() {
+        return visitPaths;
+    }
+
+    public Map<Node, List<Node>> getShortestPaths() {
+        return shortestPaths;
+    }
+
+    public LinkedList<Node> getVisitNode() {
+        return visited;
+    }
+
+    public Dijkstra(Graph graph) {
+
         this.graph = graph;
         distances = new HashMap<>();
-
-        for(Node node : graph.getNodes()){
-            distances.put(node, Integer.MAX_VALUE);
+        for (Node node : graph.getNodes()) {
+            distances.put(node.getId(), Double.MAX_VALUE);
         }
 
-
     }
+
 
     public void calculateShortestPath() {
         Node source = graph.getSource();
-        HashSet<Node> visted = new HashSet<>();
-        PriorityQueue<Node> unvisted = new PriorityQueue<>(new NodeComparator());
-        unvisted.add(source);
-        selectNode.add(source);
-        distances.put(source,0);
-        while (!unvisted.isEmpty()) {
-            Node currentNode = unvisted.poll();
+
+        PriorityQueue<Pair<Double, Node>> unvisited = new PriorityQueue<>(Comparator.comparingDouble(Pair::getKey));
+
+        // Insert source vertex into priority queue
+        unvisited.add(new Pair<>(0.0, source));
+
+        distances.put(source.getId(), 0.0);
+        shortestPaths.put(source, new ArrayList<>());
+        traversalPath.add(source);
+
+        while (!unvisited.isEmpty()) {
+            // Extract minimum distance vertex from pq
+            Pair<Double, Node> currentPair = unvisited.poll();
+            Node currentNode = currentPair.getValue();
+            Double currentDistance = currentPair.getKey();
             selectNode.add(currentNode);
+            visited.add(currentNode);
+            visitPaths.put(currentNode, new LinkedList<>());
 
-            getAdjacentNodes(currentNode)
-                    .entrySet().stream()
-                    .filter(entry -> !visted.contains(entry.getKey()))
-                    .forEach(entry -> {
-                        evaluateDistanceAndPath(entry.getKey(), entry.getValue(), currentNode);
-                        unvisted.add(entry.getKey());
-                        traversalPath.add(entry.getKey());
-                    });
-            visted.add(currentNode);
+            for (Pair<Double, Node> pair : getAdjacentNodes(currentNode)) {
+                Node adjacentNode = pair.getValue();
+                Double edgeWeight = pair.getKey();
+
+                if (!visited.contains(adjacentNode)) {
+                    traversalPath.add(adjacentNode);
+                    visitPaths.get(currentNode).add(adjacentNode);
+
+                    // Relaxation step
+                    if (distances.get(adjacentNode.getId()) > currentDistance + edgeWeight) {
+                        distances.put(adjacentNode.getId(), currentDistance + edgeWeight);
+                        shortestPaths.put(adjacentNode, new ArrayList<>(shortestPaths.get(currentNode)));
+                        //Creates a new ArrayList for the adjacentNode and initializes it with the same elements as the shortest path to the currentNode
+                        shortestPaths.get(adjacentNode).add(currentNode);
+
+                        unvisited.removeIf(p -> p.getValue().equals(adjacentNode));
+                        unvisited.add(new Pair<>(distances.get(adjacentNode.getId()), adjacentNode));
+
+                    }
+
+                }
+            }
+
+
         }
+
+        //clearHighlights();
     }
 
-    private void evaluateDistanceAndPath(Node adjacentNode, Integer edgeWeight, Node currentNode) {
-        int newDistance = distances.get(currentNode) + edgeWeight;
-        if (newDistance < distances.get(adjacentNode)) {
-            distances.put(adjacentNode, newDistance);
+    public List<Pair<Double, Node>> getAdjacentNodes(Node node) {
+        List<Pair<Double, Node>> neighbors = new ArrayList<>();
 
-            adjacentNode.setShortestPath(Stream.concat(currentNode.getShortestPath().stream(), Stream.of(currentNode)).toList());
+        for (Edge edge : graph.getEdges()) {
+            if (edge.getNodeFrom() == node) {
+                neighbors.add(new Pair<>(edge.getWeight(), edge.getNodeTo()));
+            }
+            if (edge.getNodeTo() == node) {
+                neighbors.add(new Pair<>(edge.getWeight(), edge.getNodeFrom()));
+            }
         }
+        return neighbors;
     }
 
-    public HashMap<Node, Integer> getAdjacentNodes(Node node) {
-        HashMap<Node, Integer> neighbors = new HashMap<>();
 
-        for(Edge edge : graph.getEdges()){
-            if(edge.getNodeFrom()==node)
-                neighbors.put(edge.getNodeTo(), edge.getWeight());
-            if(edge.getNodeTo()==node)
-                neighbors.put(edge.getNodeFrom(), edge.getWeight());
-        }
-        return  neighbors;
-    }
-    public void printPaths(List<Node> nodes) {
-        nodes.forEach(node -> {
-            String path = node.getShortestPath().stream()
-                    .map(Node::getId).map(Objects::toString)
-                    .collect(Collectors.joining(" -> "));
-            System.out.println((path.isBlank()
-                    ? "%s : %s".formatted(node.getId(), distances.get(node))
-                    : "%s -> %s : %s".formatted(path, node.getId(), distances.get(node)))
-            );
-        });
-    }
     public void printTravelsal() {
-        String path = traversalPath.stream()
-                .map(Node::getId).map(Objects::toString)
-                .collect(Collectors.joining(" -> "));
-        System.out.println(path);
 
+        String path = "";
+        for (Node node1 : traversalPath) {
+            path += node1.getId() + " -> ";
+        }
+
+        System.out.println(path);
     }
+
+    public void printSelect() {
+        String path = "";
+        for (Node node1 : selectNode) {
+            path += node1.getId() + " -> ";
+        }
+        System.out.println(path);
+    }
+
 
 }
